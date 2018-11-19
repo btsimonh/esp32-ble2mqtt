@@ -2,6 +2,10 @@
 build/
 main/gatt.inc
 main/gatt.h
+main/gatt.c
+src/gatt.inc
+src/gatt.h
+src/gatt.c
 
 # Local files
 sdkconfig
@@ -12,3 +16,9 @@ log.txt
 *.swp
 *.swo
 tags
+
+#platformio
+.pioenvs/
+
+#vscode
+.vscode/

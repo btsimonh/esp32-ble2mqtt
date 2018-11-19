@@ -170,5 +170,20 @@ def main():
   write_h(args.H)
   write_c(args.C)
 
+def platformio():
+  print('Getting list of services')
+  get_list(SERVICES_URL, parse_services)
+  print('Getting list of characteristics')
+  get_list(CHARACTERISTICS_URL, parse_characteristics)
+
+  print('Generating source code')
+  write_h('src\gatt.h')
+  write_c('src\gatt.c')
+
 if __name__ == '__main__':
   main()
+else:
+  print "################pre_build platformio"
+  platformio()
+  print "################pre_build platformio done"
+
