@@ -1,10 +1,9 @@
-[submodule "src/esp-mqtt"]
-	path = src/esp-mqtt
-	url = https://github.com/256dpi/esp-mqtt.git
 [submodule "mkspiffs"]
 	path = mkspiffs
 	url = https://github.com/igrr/mkspiffs.git
-[submodule "src/esp-request"]
-	path = src/esp-request
+[submodule "esp-mqtt"]
+	path = esp-mqtt
+	url = https://github.com/256dpi/esp-mqtt.git
+[submodule "esp-request"]
+	path = esp-request
 	url = https://github.com/tuanpmt/esp-request
-  
