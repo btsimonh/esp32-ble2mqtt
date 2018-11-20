@@ -26,6 +26,7 @@ uint8_t config_mqtt_qos_get(void);
 uint8_t config_mqtt_retained_get(void);
 const char *config_mqtt_get_suffix_get(void);
 const char *config_mqtt_set_suffix_get(void);
+const char *config_mqtt_topics_get(const char *param_name, const char *def);
 
 /* WiFi Configuration*/
 const char *config_wifi_ssid_get(void);

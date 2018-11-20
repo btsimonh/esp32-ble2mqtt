@@ -11,11 +11,16 @@ of the ESP-IDF and compiling this project with it offer better performance.
 This will hopefully change in the future and I will re-evaluate new ESP-IDF
 releases when they're available.
 
+An MQTT prifix for device topics may be sepcified in config.json as 
+
+{ "mqtt":{ "topics": { "prefix":"yourprefix/"c} } }
+
+
 For example, if a device with a MAC address of `a0:e6:f8:50:72:53` exposes the
 [0000180f-0000-1000-8000-00805f9b34fb service](https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.battery_service.xml)
 (Battery Service) which includes the
 [00002a19-0000-1000-8000-00805f9b34fb characteristic](https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.battery_level.xml)
-(Battery Level), the `a0:e6:f8:50:72:53/BatteryService/BatteryLevel` MQTT topic
+(Battery Level), the `<prefix>a0:e6:f8:50:72:53/BatteryService/BatteryLevel` MQTT topic
 is published with a value representing the battery level.
 
 Characteristics supporting notifications will automatically be registered on and
@@ -78,7 +83,8 @@ The `mqtt` section below includes the following entries:
     },
     "topics" :{
       "get_suffix": "/Get",
-      "set_suffix": "/Set"
+      "set_suffix": "/Set",
+      "prefix": "ble2mqtt/"
     }
   }
 }
@@ -90,6 +96,7 @@ The `mqtt` section below includes the following entries:
     to issue a read request from the characteristic
   * `set_suffix` - Which suffix should be added to the MQTT value topic in order
     to write a new value to the characteristic
+  * `prefix` - A prefix to apply to all MQTT topics related to BLE devices
 
 The `ble` section of the configuration file includes the following default
 configuration:
