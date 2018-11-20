@@ -7,6 +7,8 @@
 /* Constants */
 static const char *TAG = "MQTT";
 
+static char *prefix = NULL;
+
 /* Types */
 typedef struct mqtt_subscription_t {
     struct mqtt_subscription_t *next;
@@ -33,6 +35,30 @@ static uint8_t is_connected = 0;
 /* Callback functions */
 static mqtt_on_connected_cb_t on_connected_cb = NULL;
 static mqtt_on_disconnected_cb_t on_disconnected_cb = NULL;
+
+static char *mqtt_add_prefix( char *topic ){
+    if (!prefix || !prefix[0]) 
+        return topic;
+
+    char *prefixed_topic = malloc(strlen(prefix)+strlen(topic)+1);
+    strcpy( prefixed_topic, prefix );
+    strcat( prefixed_topic, topic );
+    free(topic);
+    return prefixed_topic;
+}
+
+static char *mqtt_remove_prefix( char *topic ){
+    if (!prefix || !prefix[0]) 
+        return topic;
+
+    if (memcmp(topic, prefix, strlen(prefix))){
+        char *unprefixed_topic = strdup( topic + strlen(prefix));
+        free(topic);
+        return unprefixed_topic;
+    }
+    return topic;
+}
+    
 
 void mqtt_set_on_connected_cb(mqtt_on_connected_cb_t cb)
 {
@@ -154,10 +180,12 @@ static void mqtt_publications_publish(mqtt_publications_t *list)
     }
 }
 
-int mqtt_subscribe(const char *topic, int qos, mqtt_on_message_received_cb_t cb,
+int mqtt_subscribe(const char *topic_in, int qos, mqtt_on_message_received_cb_t cb,
     void *ctx, mqtt_free_ctx_cb_t free_cb)
 {
     uint8_t retries = 0;
+
+    const char *topic = mqtt_add_prefix(topic_in);
 
     if (!is_connected)
         return -1;
@@ -180,8 +208,10 @@ int mqtt_subscribe(const char *topic, int qos, mqtt_on_message_received_cb_t cb,
     return 0;
 }
 
-int mqtt_unsubscribe(const char *topic)
+int mqtt_unsubscribe(const char *topic_in)
 {
+    const char *topic = mqtt_add_prefix(topic_in);
+
     ESP_LOGD(TAG, "Unsubscribing from %s", topic);
     mqtt_subscription_remove(&subscription_list, topic);
 
@@ -191,9 +221,11 @@ int mqtt_unsubscribe(const char *topic)
     return esp_mqtt_unsubscribe(topic);
 }
 
-int mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos,
+int mqtt_publish(const char *topic_in, uint8_t *payload, size_t len, int qos,
     uint8_t retained)
 {
+    const char *topic = mqtt_add_prefix(topic_in);
+
     if (is_connected)
         return esp_mqtt_publish(topic, payload, len, qos, retained) != true;
 
@@ -226,25 +258,33 @@ static void mqtt_status_cb(esp_mqtt_status_t status)
     }
 }
 
-static void mqtt_message_cb(const char *topic, uint8_t *payload, size_t len)
+static void mqtt_message_cb(const char *topic_in, uint8_t *payload, size_t len)
 {
     mqtt_subscription_t *cur;
 
-    ESP_LOGD(TAG, "Recevied: %s => %s (%d)\n", topic, payload, (int)len);
+    ESP_LOGD(TAG, "Recevied: %s => %s (%d)\n", topic_in, payload, (int)len);
 
     for (cur = subscription_list; cur; cur = cur->next)
     {
         /* TODO: Correctly match MQTT topics (i.e. support wildcards) */
-        if (strcmp(cur->topic, topic))
+        if (strcmp(cur->topic, topic_in))
             continue;
 
+        const char *topic = mqtt_remove_prefix(topic_in);
         cur->cb(topic, payload, len, cur->ctx);
     }
 }
 
 int mqtt_connect(const char *host, uint16_t port, const char *client_id,
-    const char *username, const char *password)
+    const char *username, const char *password, const char *prefix_in)
 {
+    if (prefix)
+        free(prefix);
+    if (prefix_in)
+        prefix = prefix_in; // note - malloced in cJSON?
+    else
+        prefix = NULL;
+
     ESP_LOGI(TAG, "Connecting MQTT client");
     esp_mqtt_start(host, port, client_id, username, password);
     return 0;

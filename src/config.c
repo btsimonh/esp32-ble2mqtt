@@ -203,6 +203,19 @@ uint8_t config_mqtt_qos_get(void)
     return 0;
 }
 
+const char *config_mqtt_prefix_get(void)
+{
+    cJSON *mqtt = cJSON_GetObjectItemCaseSensitive(config, "mqtt");
+    cJSON *publish = cJSON_GetObjectItemCaseSensitive(mqtt, "publish");
+    cJSON *prefix = cJSON_GetObjectItemCaseSensitive(publish, "prefix");
+
+    if (cJSON_IsString(prefix))
+        return prefix->valuestring;
+
+    return 0;
+}
+
+
 uint8_t config_mqtt_retained_get(void)
 {
     cJSON *mqtt = cJSON_GetObjectItemCaseSensitive(config, "mqtt");
